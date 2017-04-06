@@ -15,36 +15,36 @@ def become_daemon_and_wait(on_start, on_exit, exit_signal=signal.SIGTERM):
     :param exit_signal: signal that will trigger shutdown, by default SIGTERM
     :return:
     """
-    if platform.system() == 'Windows':
-        on_start()
-        if sys.version_info.major == 3:
-            input('Press Enter to exit')
-        else:
-            raw_input('Press Enter to exit')
+    # if platform.system() == 'Windows':
+    #     on_start()
+    #     if sys.version_info.major == 3:
+    #         input('Press Enter to exit')
+    #     else:
+    #         raw_input('Press Enter to exit')
+    #     on_exit()
+    # else:
+    def handler0(signum, frame):
         on_exit()
-    else:
-        def handler0(signum, frame):
-            on_exit()
-            os._exit(0)
+        os._exit(0)
 
-        signal.signal(exit_signal, handler0)
+    signal.signal(exit_signal, handler0)
 
-        try:
-            signal.signal(signal.SIGHUP, signal.SIG_IGN)
-        except:
-            pass
+    try:
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)
+    except:
+        pass
 
+    if os.fork() == 0:
+        os.setsid()
         if os.fork() == 0:
-            os.setsid()
-            if os.fork() == 0:
-                os.chdir('/')
-                os.umask(0)
-            else:
-                os._exit(0)
+            os.chdir('/')
+            os.umask(0)
         else:
             os._exit(0)
+    else:
+        os._exit(0)
 
-        on_start()
+    on_start()
 
-        while True:
-            time.sleep(60)
+    while True:
+        time.sleep(60)
